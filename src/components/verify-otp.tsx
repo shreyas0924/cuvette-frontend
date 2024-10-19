@@ -8,11 +8,6 @@ interface VerificationStatus {
   phone: boolean;
 }
 
-interface OTPInputStatus {
-  email: string;
-  phone: string;
-}
-
 const VerifyOtp = () => {
   const [verificationStatus, setVerificationStatus] =
     useState<VerificationStatus>({
@@ -20,29 +15,48 @@ const VerifyOtp = () => {
       phone: false,
     });
 
-  const [otpValues, setOtpValues] = useState<OTPInputStatus>({
-    email: "",
-    phone: "",
-  });
+  const [otp, setOtp] = useState("");
 
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const verifyEmailOTP = async () => {
-    if (!otpValues.email) return;
+    if (!otp) return;
     setIsVerifying(true);
+    setErrorMessage(null); // Reset error message before new attempt
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Call backend API to verify the OTP
+      const response = await fetch(
+        "http://localhost:3000/api/companies/verifyEmail",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: "1js20cs157@gmail.com",
+            otp,
+          }),
+        }
+      );
 
-      // Add your actual API verification logic here
-      // const response = await verifyOTP(otpValues.email);
+      const data = await response.json();
 
-      setVerificationStatus((prev) => ({
-        ...prev,
-        email: true,
-      }));
+      if (response.ok) {
+        // OTP verification succeeded
+        setVerificationStatus((prev) => ({
+          ...prev,
+          email: true,
+        }));
+      } else {
+        // Handle error message from API
+        setErrorMessage(
+          data.error || "Failed to verify OTP. Please try again."
+        );
+      }
     } catch (error) {
+      setErrorMessage("An error occurred during verification.");
       console.error("OTP verification failed:", error);
     } finally {
       setIsVerifying(false);
@@ -52,7 +66,7 @@ const VerifyOtp = () => {
   return (
     <Layout>
       {/* Left Text Section */}
-      <div className="w-1/2">
+      <div className=" grid grid-cols-2 ">
         <h1 className="text-4xl font-bold mb-6">Cuvette</h1>
         <p className="text-gray-600 max-w-lg">
           Lorem Ipsum is simply dummy text of the printing and typesetting
@@ -79,20 +93,15 @@ const VerifyOtp = () => {
                     type="text"
                     placeholder="Enter Email OTP"
                     className="flex-1 outline-none"
-                    value={otpValues.email}
-                    onChange={(e) =>
-                      setOtpValues((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
                     maxLength={6}
                   />
                   <button
                     onClick={verifyEmailOTP}
-                    disabled={isVerifying || !otpValues.email}
+                    disabled={isVerifying || !otp}
                     className={`px-4 py-1 rounded-md text-white ${
-                      isVerifying || !otpValues.email
+                      isVerifying || !otp
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-blue-500 hover:bg-blue-600"
                     }`}
@@ -133,10 +142,15 @@ const VerifyOtp = () => {
                 </div>
               )}
             </div>
+
+            {/* Display error message if OTP verification fails */}
+            {errorMessage && (
+              <p className="text-red-500 text-sm">{errorMessage}</p>
+            )}
           </div>
 
-          {/* Mobile OTP */}
-          <div className="space-y-2">
+          {/* Mobile OTP - Not functional */}
+          {/* <div className="space-y-2">
             <div className="flex items-center border rounded-lg p-4">
               <span className="text-gray-600 text-xl mr-4">📞</span>
               {!verificationStatus.phone ? (
@@ -154,7 +168,6 @@ const VerifyOtp = () => {
                     }
                     maxLength={6}
                   />
-                  {/* Note: Phone verification is not implemented as per requirements */}
                   <button className="px-4 py-1 rounded-md text-white bg-gray-400 cursor-not-allowed">
                     Verify
                   </button>
@@ -166,17 +179,13 @@ const VerifyOtp = () => {
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
 
-          {/* Proceed Button - Only shown when both are verified */}
+          {/* Proceed Button - Only shown when email is verified */}
           {verificationStatus.email && (
             <Link
               to={`/dashboard`}
               className="w-full py-3 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors mt-6"
-              onClick={() => {
-                // Add your proceed logic here
-                console.log("Proceeding to next step");
-              }}
             >
               Proceed
             </Link>
