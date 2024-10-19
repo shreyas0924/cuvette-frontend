@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import Layout from "../layout";
 import { useNavigate } from "react-router-dom";
 
@@ -63,7 +63,12 @@ export default function SignUpForm() {
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
   return (
     <Layout>
       <div className="grid grid-cols-2  my-auto max-w-lg w-full font-sans text-justify text-[#292929B2] text-lg bg-white ">

@@ -1,7 +1,7 @@
 // src/pages/VerifyOtp.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "../layout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface VerificationStatus {
   email: boolean;
@@ -9,6 +9,7 @@ interface VerificationStatus {
 }
 
 const VerifyOtp = () => {
+  const navigate = useNavigate()
   const [verificationStatus, setVerificationStatus] =
     useState<VerificationStatus>({
       email: false,
@@ -62,7 +63,12 @@ const VerifyOtp = () => {
       setIsVerifying(false);
     }
   };
-
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
   return (
     <Layout>
       {/* Left Text Section */}
